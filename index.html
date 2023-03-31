@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        .output {
+            display: block;
+            margin-top: 20px;
+            padding: 15px;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        #thumb_box{
+            display: flex;
+            border: 1px solid grey;
+        }
+        .patch {
+            width: 64px;
+            height: 64px;
+            margin: 10px;
+            border: 1px solid grey;
+        }
+        #edit_box {
+            margin: 15px;
+            padding: 15px;
+            border: 1px solid grey;
+            visibility: hidden;
+        }
+        #dieetlink {
+            visibility: hidden;
+        }
+    </style>
+</head>
+<body>
+    <h1>Uw BMI berekenen</h1>
+    <div id="sliderbox">
+        Uw gewicht: <input type="range" min="30" max="150" step="0.5" id="input_w"><output id="output_w"></output><br>
+        Uw lengte: <input type="range" min="120" max="220" id="input_l"><output id="output_l"></output><br>
+        <output id="output_bmi" class="output"></output>
+    </div>
+    <p id="tipsbox"></p>
+    <p id="dieetlink">Bezoek één van onze di&euml;tisten: <a href="https://www.nvdietist.nl">www.nvdietist.nl</a>  </p>
+    <div id="thumb_box"></div>
+    <div id="edit_box">
+        <input type="range" max="255" id="slider_r"><output id="output_r"></output><br>
+        <input type="range" max="255" id="slider_g"><output id="output_g"></output><br>
+        <input type="range" max="255" id="slider_b"><output id="output_b"></output><br>
+        <input type="range" max="1" step="0.01" id="slider_a"><output id="output_a"></output><br>
+        <input type="text" id="input_name">
+    </div>
+    <script src="main.js" async defer></script>
+</body>
+</html>
