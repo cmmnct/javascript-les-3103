@@ -154,7 +154,7 @@ function onInputColorSliders() {
   patches[currentPatch].b = sliderB.value;
   patches[currentPatch].a = sliderA.value;
   console.log(patches[currentPatch]);
-  editBox.style.backgroundColor = `rgba(${sliderR.value},${sliderG.value},${sliderB.value},${sliderA.value})`
+  editBox.style.backgroundColor = `rgba(${sliderR.value},${sliderG.value},${sliderB.value},${sliderA.value})`;
 }
 
 const someObject = {
