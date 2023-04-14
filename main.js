@@ -1,6 +1,7 @@
 /* eslint-disable max-len */
-/* eslint-disable require-jsdoc */
 'use strict';
+import { ColorPatch } from "./lib.js";
+
 // list with DOM elements
 const sliderbox = document.getElementById('sliderbox');
 const inputL = document.getElementById('input_l');
@@ -20,11 +21,14 @@ const sliderB = document.getElementById('slider_b');
 const outputB = document.getElementById('output_b');
 const sliderA = document.getElementById('slider_a');
 const outputA = document.getElementById('output_a');
+const inputName = document.getElementById('input_name');
+const btnSaveColor = document.getElementById('btn_save_color');
 
 // list with eventlisteners
 sliderbox.addEventListener('input', onInputSliders);
 thumbBox.addEventListener('click', onClickColorpatch);
 editBox.addEventListener('input', onInputColorSliders);
+btnSaveColor.addEventListener('click', onClickSaveColor);
 
 
 const tiptext = [
@@ -34,87 +38,78 @@ const tiptext = [
   'Uw gewicht is te hoog. U loopt kans op obesitas en daaraan gerelateerde lichaamsklachten. Bezoek een di&euml;tist',
   'Uw gewicht is alarmerend hoog!!! Bezoek onmiddelijk een arts. U loopt acuut levensgevaar!',
 ];
-let currentPatchName;
+let currentPatchId;
+let currentPatchIndex;
 let currentPatch;
-const patches = [
-  {
-    'r': 255,
-    'g': 0,
-    'b': 0,
-    'a': 1,
-    'name': 'red',
-  },
-  {
-    'r': 0,
-    'g': 255,
-    'b': 0,
-    'a': 1,
-    'name': 'green',
-  }, {
-    'r': 0,
-    'g': 0,
-    'b': 255,
-    'a': 1,
-    'name': 'blue',
-  },
-  {
-    'r': 255,
-    'g': 255,
-    'b': 0,
-    'a': 1,
-    'name': 'yellow',
-  }, {
-    'r': 0,
-    'g': 255,
-    'b': 255,
-    'a': 1,
-    'name': 'cyan',
-  }, {
-    'r': 255,
-    'g': 0,
-    'b': 255,
-    'a': 1,
-    'name': 'magenta',
-  }, {
-    'r': 255,
-    'g': 255,
-    'b': 255,
-    'a': 1,
-    'name': 'white',
-  }, {
-    'r': 0,
-    'g': 0,
-    'b': 0,
-    'a': 1,
-    'name': 'black',
-  }, {
-    'r': 128,
-    'g': 128,
-    'b': 128,
-    'a': 1,
-    'name': 'grey',
-  },
-];
+
+const colorPatches = [
+  new ColorPatch(0, 0, 0, 1, "black", 0),
+  new ColorPatch(255, 255, 255, 1, "white", 1),
+  new ColorPatch(255, 0, 0, 1, "red", 2),
+  new ColorPatch(0, 255, 0, 1, "green", 3),
+  new ColorPatch(0, 0, 255, 1, "blue", 4),
+  new ColorPatch(0, 255, 255, 1, "cyan", 5),
+  new ColorPatch(255, 0, 255, 1, "magenta", 6),
+  new ColorPatch(255, 255, 0, 1, "yellow", 7),
+]
 
 function onClickColorpatch(evt) {
-  // console.log(evt.target.name);
-  currentPatchName = evt.target.name;
-  editBox.style.visibility = 'visible';
-  editBox.style.backgroundColor = evt.target.style.backgroundColor;
-  currentPatch = patches.findIndex(findItemByColor);
+  if (evt.target.className == "patch") {
+    let clickedPatch = colorPatches[evt.target.id]; // by reference
+    console.log(clickedPatch);
+    currentPatchId = evt.target.name;
+    editBox.style.visibility = 'visible';
+    editBox.style.backgroundColor = evt.target.style.backgroundColor;
+    currentPatchIndex = colorPatches.findIndex(findItemByName);
+    currentPatch = new ColorPatch(clickedPatch.r, clickedPatch.g, clickedPatch.b, clickedPatch.a, clickedPatch.name, clickedPatch.id);
+    console.log(currentPatchIndex);
+    sliderR.value = currentPatch.r;
+    sliderG.value = currentPatch.g;
+    sliderB.value = currentPatch.b;
+    sliderA.value = currentPatch.a;
+    outputR.value = currentPatch.r;
+    outputG.value = currentPatch.g;
+    outputB.value = currentPatch.b;
+    outputA.value = currentPatch.a;
+    inputName.value = currentPatch.name;
+  }
+}
+function onInputColorSliders() {
+  currentPatch.r = sliderR.value;
+  currentPatch.g = sliderG.value;
+  currentPatch.b = sliderB.value;
+  currentPatch.a = sliderA.value;
+  currentPatch.name = inputName.value;
   console.log(currentPatch);
-  sliderR.value = patches[currentPatch].r;
-  sliderG.value = patches[currentPatch].g;
-  sliderB.value = patches[currentPatch].b;
-  sliderA.value = patches[currentPatch].a;
-  outputR.value = patches[currentPatch].r;
-  outputG.value = patches[currentPatch].g;
-  outputB.value = patches[currentPatch].b;
-  outputA.value = patches[currentPatch].a;
+  editBox.style.backgroundColor = currentPatch.rgba;
+  btnSaveColor.style.visibility = 'visible';
 }
 
-function findItemByColor(value, index, array) {
-  return array[index].name === currentPatchName;
+colorPatches.forEach((item) => addPatchToDom(item, thumbBox));
+
+function addPatchToDom(item, domContainer) {
+  const newElement = document.createElement('div');
+  newElement.className = 'patch';
+  // newElement.style.backgroundColor = 'rgba(' + item.r + ', ' + item.g + ', ' + item.b + ', ' + item.a + ')';
+  newElement.style.backgroundColor = item.rgba;
+  newElement.title = item.name;
+  newElement.name = item.name;
+  newElement.id = item.id;
+  // return newElement;
+  domContainer.appendChild(newElement);
+}
+
+function onClickSaveColor() {
+  editBox.style.visibility = 'hidden';
+  colorPatches.splice(currentPatchIndex, 1, currentPatch);
+  thumbBox.innerHTML = ""; // let op: geen pure function!
+  colorPatches.forEach((item) => addPatchToDom(item, thumbBox));
+  btnSaveColor.style.visibility = 'hidden';
+  
+}
+
+function findItemByName(value, index, array) {
+  return array[index].name === currentPatchId;
 }
 
 function onInputSliders(evt) {
@@ -148,21 +143,14 @@ function onInputSliders(evt) {
   outputBMI.style.backgroundColor = bgColor;
 }
 
-function onInputColorSliders() {
-  patches[currentPatch].r = sliderR.value;
-  patches[currentPatch].g = sliderG.value;
-  patches[currentPatch].b = sliderB.value;
-  patches[currentPatch].a = sliderA.value;
-  console.log(patches[currentPatch]);
-  editBox.style.backgroundColor = `rgba(${sliderR.value},${sliderG.value},${sliderB.value},${sliderA.value})`;
-}
+
 
 const someObject = {
   age: 39,
   sex: 'm',
   firstName: 'Mark',
   lastName: 'Nijenhuis',
-  fullName: function() {
+  fullName: function () {
     return this.firstName + this.lastName;
   },
 
@@ -174,15 +162,4 @@ let myAge = someObject.fullName(); // mutable
 // eslint-disable-next-line no-unused-vars
 const myName = 'Mark Nijenhuis'; // immutable
 
-patches.forEach((item) => addPatchToDom(item, thumbBox));
 
-function addPatchToDom(item, domContainer) {
-  const newElement = document.createElement('div');
-  newElement.className = 'patch';
-  // newElement.style.backgroundColor = 'rgba(' + item.r + ', ' + item.g + ', ' + item.b + ', ' + item.a + ')';
-  newElement.style.backgroundColor = `rgba(${item.r},${item.g},${item.b},${item.a})`;
-  newElement.title = item.name;
-  newElement.name = item.name;
-  // return newElement;
-  domContainer.appendChild(newElement);
-}
