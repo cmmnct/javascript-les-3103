@@ -24,11 +24,13 @@ const outputA = document.getElementById('output_a');
 const inputName = document.getElementById('input_name');
 const btnSaveColor = document.getElementById('btn_save_color');
 
+
 // list with eventlisteners
 sliderbox.addEventListener('input', onInputSliders);
 thumbBox.addEventListener('click', onClickColorpatch);
 editBox.addEventListener('input', onInputColorSliders);
 btnSaveColor.addEventListener('click', onClickSaveColor);
+
 
 
 const tiptext = [
@@ -40,52 +42,76 @@ const tiptext = [
 ];
 let currentPatchId;
 let currentPatchIndex;
-let currentPatch;
+let editPatch;
+const myUrl = 'https://my-json-server.typicode.com/cmmnct/patchDemo/patches';
+let colorPatches = [];
+let key = 'colorpatches';
+//btnSaveColor.setAttribute('disabled', true);
 
-const colorPatches = [
-  new ColorPatch(0, 0, 0, 1, "black", 0),
-  new ColorPatch(255, 255, 255, 1, "white", 1),
-  new ColorPatch(255, 0, 0, 1, "red", 2),
-  new ColorPatch(0, 255, 0, 1, "green", 3),
-  new ColorPatch(0, 0, 255, 1, "blue", 4),
-  new ColorPatch(0, 255, 255, 1, "cyan", 5),
-  new ColorPatch(255, 0, 255, 1, "magenta", 6),
-  new ColorPatch(255, 255, 0, 1, "yellow", 7),
-]
+if (!window.localStorage.getItem(key)) {
+  fetchColorPatches(myUrl, colorPatches, thumbBox);
+}
+else {
+  getColorPatches(key, colorPatches, thumbBox);
+}
+
+async function fetchColorPatches(url, dataArray, domElement) { //pure function: geen side effects!!
+  if (url) {
+    const response = await fetch(url);
+    const jsonData = await response.json();
+    await jsonData.forEach(item => dataArray.push(new ColorPatch(item.r, item.g, item.b, item.a, item.name, item.id,)))
+    await dataArray.forEach((item) => addPatchToDom(item, domElement));
+    let add = new ColorPatch(0, 0, 0, 1, "black", 1000);
+    addPatchToDom(add, domElement);
+  }
+}
+
+async function getColorPatches(key, dataArray, domElement) {
+  const colorPatchesJSON = await JSON.parse(window.localStorage.getItem(key));
+  await colorPatchesJSON.forEach(item => dataArray.push(new ColorPatch(item.r, item.g, item.b, item.a, item.name, item.id,)))
+  await dataArray.forEach((item) => addPatchToDom(item, domElement));
+  let add = new ColorPatch(0, 0, 0, 0, "new", 1000);
+  addPatchToDom(add, domElement);
+}
 
 function onClickColorpatch(evt) {
-  if (evt.target.className == "patch") {
+  if (evt.target.className == "patch" && evt.target.name !== "new") {
     let clickedPatch = colorPatches[evt.target.id]; // by reference
     console.log(clickedPatch);
     currentPatchId = evt.target.name;
-    editBox.style.visibility = 'visible';
     editBox.style.backgroundColor = evt.target.style.backgroundColor;
     currentPatchIndex = colorPatches.findIndex(findItemByName);
-    currentPatch = new ColorPatch(clickedPatch.r, clickedPatch.g, clickedPatch.b, clickedPatch.a, clickedPatch.name, clickedPatch.id);
-    console.log(currentPatchIndex);
-    sliderR.value = currentPatch.r;
-    sliderG.value = currentPatch.g;
-    sliderB.value = currentPatch.b;
-    sliderA.value = currentPatch.a;
-    outputR.value = currentPatch.r;
-    outputG.value = currentPatch.g;
-    outputB.value = currentPatch.b;
-    outputA.value = currentPatch.a;
-    inputName.value = currentPatch.name;
+    editPatch = new ColorPatch(clickedPatch.r, clickedPatch.g, clickedPatch.b, clickedPatch.a, clickedPatch.name, clickedPatch.id);
   }
+  else {
+    console.log("new patch maken")
+    editPatch = new ColorPatch(0, 0, 0, 0, "", 100);
+  }
+  editBox.style.visibility = 'visible';
+  console.log(currentPatchIndex);
+  sliderR.value = editPatch.r;
+  sliderG.value = editPatch.g;
+  sliderB.value = editPatch.b;
+  sliderA.value = editPatch.a;
+  outputR.value = editPatch.r;
+  outputG.value = editPatch.g;
+  outputB.value = editPatch.b;
+  outputA.value = editPatch.a;
+  inputName.value = editPatch.name;
 }
 function onInputColorSliders() {
-  currentPatch.r = sliderR.value;
-  currentPatch.g = sliderG.value;
-  currentPatch.b = sliderB.value;
-  currentPatch.a = sliderA.value;
-  currentPatch.name = inputName.value;
-  console.log(currentPatch);
-  editBox.style.backgroundColor = currentPatch.rgba;
+  editPatch.r = sliderR.value;
+  editPatch.g = sliderG.value;
+  editPatch.b = sliderB.value;
+  editPatch.a = sliderA.value;
+  editPatch.name = inputName.value;
+  console.log(editPatch);
+  editBox.style.backgroundColor = editPatch.rgba;
   btnSaveColor.style.visibility = 'visible';
+  //btnSaveColor.setAttribute('disabled', false);
+
 }
 
-colorPatches.forEach((item) => addPatchToDom(item, thumbBox));
 
 function addPatchToDom(item, domContainer) {
   const newElement = document.createElement('div');
@@ -101,11 +127,31 @@ function addPatchToDom(item, domContainer) {
 
 function onClickSaveColor() {
   editBox.style.visibility = 'hidden';
-  colorPatches.splice(currentPatchIndex, 1, currentPatch);
+  if (!editPatch) {
+    colorPatches.splice(currentPatchIndex, 1, editPatch);
+  }
+  else {
+    colorPatches.push(editPatch);
+  }
+
   thumbBox.innerHTML = ""; // let op: geen pure function!
   colorPatches.forEach((item) => addPatchToDom(item, thumbBox));
   btnSaveColor.style.visibility = 'hidden';
-  
+  console.log(JSON.stringify(colorPatches));
+
+  const colorPatchJSON = colorPatches.map(item => {
+    return {
+      "r": item.r,
+      "g": item.g,
+      "b": item.b,
+      "a": item.a,
+      "name": item.name,
+      "id": item.id,
+    }
+  })
+
+  window.localStorage.setItem("colorpatches", JSON.stringify(colorPatchJSON));
+
 }
 
 function findItemByName(value, index, array) {
